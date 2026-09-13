@@ -96,7 +96,12 @@ bool Session::init()
 					  myQtToolsInterface->stringFromUtf8(myConfig->readConfigString("AppDataDir")),
 					  myQtToolsInterface->stringFromUtf8(myConfig->readConfigString("CacheDir")));
 	addOwnAvatar(myQtToolsInterface->stringFromUtf8(myConfig->readConfigString("MyAvatar")));
+#ifndef POKERTH_OFFICIAL_SERVER
+	// The official server keeps its cache as the permanent avatar store: it is
+	// synced to the web server, which shows the avatars on the player profiles.
+	// Deleting cache files there removes the avatars from the website.
 	myAvatarManager->RemoveOldAvatarCacheEntries();
+#endif
 	return retVal;
 }
 

@@ -463,12 +463,6 @@ AvatarManager::StoreAvatarInCache(const MD5Buf &md5buf, AvatarFileType avatarFil
 					}
 
 					m_cachedAvatars[md5buf] = fileName;
-					// Keep the cache bounded when a remote peer causes a new
-					// avatar to be stored. The periodic server cleanup handles
-					// stale entries, while this prevents upload bursts from
-					// growing the cache without bound between timer runs.
-					cacheLock.unlock();
-					RemoveOldAvatarCacheEntries();
 					retVal = true;
 				}
 			}

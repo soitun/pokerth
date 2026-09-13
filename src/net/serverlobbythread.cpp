@@ -1100,12 +1100,15 @@ ServerLobbyThread::RegisterTimers()
 	m_loginLockTimer.async_wait(
 		boost::bind(
 			&ServerLobbyThread::TimerUpdateClientLoginLock, shared_from_this(), boost::asio::placeholders::error));
-	// Remove stale and excess avatar cache entries periodically. The
-	// AvatarManager also enforces the limit after each new upload.
+#ifndef POKERTH_OFFICIAL_SERVER
+	// Remove stale and excess avatar cache entries periodically. The limit
+	// is also enforced after each new upload. The official server keeps
+	// every avatar (see Session::init).
 	m_avatarCleanupTimer.expires_after(seconds(SERVER_AVATAR_CACHE_CLEANUP_INTERVAL_SEC));
 	m_avatarCleanupTimer.async_wait(
 		boost::bind(
 			&ServerLobbyThread::TimerCleanupAvatarCache, shared_from_this(), boost::asio::placeholders::error));
+#endif
 }
 
 void
@@ -1514,6 +1517,13 @@ ServerLobbyThread::HandleNetPacketAvatarEnd(boost::shared_ptr<SessionData> sessi
 					session->GetPlayerData()->SetAvatarMD5(MD5Buf());
 					LOG_ERROR("Failed to store avatar in cache directory.");
 				}
+#ifndef POKERTH_OFFICIAL_SERVER
+				// Keep the cache bounded when a remote peer causes a new
+				// avatar to be stored. The official server keeps every
+				// avatar (see Session::init).
+				else
+					GetAvatarManager().RemoveOldAvatarCacheEntries();
+#endif
 
 				// Free memory.
 				session->GetPlayerData()->SetNetAvatarFile(boost::shared_ptr<AvatarFile>());
